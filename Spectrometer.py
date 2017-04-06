@@ -92,7 +92,7 @@ def AnnotateFit(fit,axisHandle,annotationText='Eq',color='black',Arrow=False,xAr
                 )
     annotationObject.draggable()
     
-def AttenuatedEmit(colorX,colorY):
+def AttenuatedEmit(colorX,colorY,linestyle =':b'):
     ''' This function takes output from the savsmooth function for each LED color 
     as arguements, plots the attenuated emission for that color LED over a range of
     10 concentraitons, and returns the polyAbs, monoAbs, and concList'''
@@ -108,7 +108,7 @@ def AttenuatedEmit(colorX,colorY):
         transmittance=10**-(sampleAbsorbance)
         attenuatedSource=colorY*transmittance
         P= np.trapz(attenuatedSource)
-        ax2.plot(colorX,attenuatedSource,':b')
+        ax2.plot(colorX,attenuatedSource,linestyle)
         monoAbs[concIndex]=np.max(sampleAbsorbance)
         polyAbs[concIndex]=-np.log10(P/P0)
         concIndex=concIndex+1 
@@ -137,23 +137,25 @@ ax1.tick_params('y', colors='orange')
 
 ax2 = ax1.twinx()
 blueX, blueY = savsmooth(wl,'blue')
+greenX, greenY = savsmooth(wl, 'green')
 
 ax2.plot(blueX,blueY, color='blue')
-ax2.set_ylabel('Intensity', color='blue')
-ax2.tick_params('y', colors='blue')
+ax2.plot(greenX,greenY, color='green')
+ax2.set_ylabel('Intensity')
 
 fig.tight_layout()
 plt.show()
 
 
 
-
-
 polyAbs_blue, monoAbs_blue, concList_blue = AttenuatedEmit(blueX,blueY)
+polyAbs_green, monoAbs_green, concList_green = AttenuatedEmit(greenX, greenY, linestyle = ':g') 
 
 # use the PolyReg function to fit the polychromatic absorbance to a second order  
 fit2=PolyReg(concList_blue[concList_blue<=3],polyAbs_blue[concList_blue<=3],2)
 fit1=PolyReg(concList_blue,polyAbs_blue,2)
+fit3=PolyReg(concList_green,polyAbs_green,2)
+
 
 # plot the data points (polyAbs), and the fit of the polychromatic,
 # and the monochromatic absorbaces
@@ -161,10 +163,13 @@ plt.figure(2)
 ax1 = plt.subplot()
 ax1.plot(concList_blue, polyAbs_blue, 'ob')
 ax1.plot(concList_blue, fit1['poly'](concList_blue),'b')
+ax1.plot(concList_green, polyAbs_green, 'og') 
+ax1.plot(concList_green, fit3['poly'](concList_green),'g')
 ax1.plot(concList_blue, monoAbs_blue, 'k')
 
 # annotate the polychromatic light fit
 AnnotateFit(fit2,ax1,color='blue')
+AnnotateFit(fit3,ax1,color ='green',xText=0.1, yText=0.8)
 
 # label figure
 ax1.set_ylabel('Absorbance')
