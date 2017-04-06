@@ -91,6 +91,28 @@ def AnnotateFit(fit,axisHandle,annotationText='Eq',color='black',Arrow=False,xAr
                 bbox={'boxstyle':'round', 'edgecolor':color,'facecolor':'0.8'}
                 )
     annotationObject.draggable()
+    
+def AttenuatedEmit(colorX,colorY):
+    ''' This function takes output from the savsmooth function for each LED color 
+    as arguements, plots the attenuated emission for that color LED over a range of
+    10 concentraitons, and returns the polyAbs, monoAbs, and concList'''
+    
+    concList=np.arange(0,11,1)
+    monoAbs=np.zeros(len(concList))
+    polyAbs=np.zeros(len(concList))
+    P0= np.trapz(blueY)
+    path=1
+    concIndex=0
+    for conc in concList:
+        sampleAbsorbance=absY*conc*path
+        transmittance=10**-(sampleAbsorbance)
+        attenuatedSource=colorY*transmittance
+        P= np.trapz(attenuatedSource)
+        ax2.plot(colorX,attenuatedSource,':b')
+        monoAbs[concIndex]=np.max(sampleAbsorbance)
+        polyAbs[concIndex]=-np.log10(P/P0)
+        concIndex=concIndex+1 
+    return polyAbs,monoAbs, concList
 
 
 #root = tkinter.Tk()
@@ -104,15 +126,10 @@ print(data1.head())
 
 
 #plot wavelength vs absorptivity
-
 wl = np.array(data1['wavelength'])
-
 absX,absY = savsmooth(wl, 'absorptivity')
 
-
 fig, ax1 = plt.subplots()
-wl = np.array(data1['wavelength'])
-
 ax1.plot(absX,absY, color='orange')
 ax1.set_xlabel('wavelength (nm)')
 ax1.set_ylabel('Absorbance', color='orange')
@@ -120,6 +137,7 @@ ax1.tick_params('y', colors='orange')
 
 ax2 = ax1.twinx()
 blueX, blueY = savsmooth(wl,'blue')
+
 ax2.plot(blueX,blueY, color='blue')
 ax2.set_ylabel('Intensity', color='blue')
 ax2.tick_params('y', colors='blue')
@@ -128,38 +146,22 @@ fig.tight_layout()
 plt.show()
 
 
-# loop over some concentrations to calculate the attenuated
-# emissionof the blue LED at a range of concentrations from
-# 0 to 10ppm in 1ppm increments
 
 
-concList=np.arange(0,11,1)
-monoAbs=np.zeros(len(concList))
-polyAbs=np.zeros(len(concList))
-P0= np.trapz(blueY)
-path=1
-concIndex=0
-for conc in concList:
-    sampleAbsorbance=absY*conc*path
-    transmittance=10**-(sampleAbsorbance)
-    attenuatedSource=blueY*transmittance
-    P= np.trapz(attenuatedSource)
-    ax2.plot(blueX,attenuatedSource,':b')
-    monoAbs[concIndex]=np.max(sampleAbsorbance)
-    polyAbs[concIndex]=-np.log10(P/P0)
-    concIndex=concIndex+1 
+
+polyAbs_blue, monoAbs_blue, concList_blue = AttenuatedEmit(blueX,blueY)
 
 # use the PolyReg function to fit the polychromatic absorbance to a second order  
-fit2=PolyReg(concList[concList<=3],polyAbs[concList<=3],2)
-fit1=PolyReg(concList,polyAbs,2)
+fit2=PolyReg(concList_blue[concList_blue<=3],polyAbs_blue[concList_blue<=3],2)
+fit1=PolyReg(concList_blue,polyAbs_blue,2)
 
 # plot the data points (polyAbs), and the fit of the polychromatic,
 # and the monochromatic absorbaces
 plt.figure(2) 
 ax1 = plt.subplot()
-ax1.plot(concList, polyAbs, 'ob')
-ax1.plot(concList, fit1['poly'](concList),'b')
-ax1.plot(concList, monoAbs, 'k')
+ax1.plot(concList_blue, polyAbs_blue, 'ob')
+ax1.plot(concList_blue, fit1['poly'](concList_blue),'b')
+ax1.plot(concList_blue, monoAbs_blue, 'k')
 
 # annotate the polychromatic light fit
 AnnotateFit(fit2,ax1,color='blue')
@@ -168,6 +170,7 @@ AnnotateFit(fit2,ax1,color='blue')
 ax1.set_ylabel('Absorbance')
 ax1.set_xlabel('Concentration')
 ax1.set_title('Calibration')
+plt.show()
 
 
 
