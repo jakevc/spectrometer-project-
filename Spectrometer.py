@@ -92,7 +92,7 @@ def AnnotateFit(fit,axisHandle,annotationText='Eq',color='black',Arrow=False,xAr
                 )
     annotationObject.draggable()
     
-def AttenuatedEmit(colorX,colorY,linestyle =':b'):
+def AttenuatedEmit(colorX,colorY,color='blue'):
     ''' This function takes output from the savsmooth function for each LED color 
     as arguements, plots the attenuated emission for that color LED over a range of
     10 concentraitons, and returns the polyAbs, monoAbs, and concList'''
@@ -108,7 +108,7 @@ def AttenuatedEmit(colorX,colorY,linestyle =':b'):
         transmittance=10**-(sampleAbsorbance)
         attenuatedSource=colorY*transmittance
         P= np.trapz(attenuatedSource)
-        ax2.plot(colorX,attenuatedSource,linestyle)
+        ax2.plot(colorX,attenuatedSource,color,ls=':')
         monoAbs[concIndex]=np.max(sampleAbsorbance)
         polyAbs[concIndex]=-np.log10(P/P0)
         concIndex=concIndex+1 
@@ -138,23 +138,45 @@ ax1.tick_params('y', colors='orange')
 ax2 = ax1.twinx()
 blueX, blueY = savsmooth(wl,'blue')
 greenX, greenY = savsmooth(wl, 'green')
+bgX, bgY = savsmooth(wl, 'bluegreen')
+orangeX, orangeY = savsmooth(wl, 'orange')
+whiteX, whiteY = savsmooth(wl, 'white') 
+yellowX,yellowY = savsmooth(wl, 'yellow') 
+redX, redY = savsmooth(wl, 'red')
 
 ax2.plot(blueX,blueY, color='blue')
 ax2.plot(greenX,greenY, color='green')
+ax2.plot(bgX,bgY, color='c')
+ax2.plot(orangeX,orangeY, color = 'orange')
+ax2.plot(whiteX,whiteY, color = 'k')
+ax2.plot(yellowX,yellowY, color = 'y')
+ax2.plot(redX,redY, color = 'r')
+
 ax2.set_ylabel('Intensity')
 
 fig.tight_layout()
 plt.show()
 
 
+#Access Attenuated emission data for each color LED
+polyAbs_blue, monoAbs_blue, concList_blue = AttenuatedEmit(blueX,blueY,':b')
+polyAbs_green, monoAbs_green, concList_green = AttenuatedEmit(greenX, greenY, color = ':g')
+polyAbs_bg, monoAbs_bg, concList_bg = AttenuatedEmit(bgX, bgY, color = ':c') 
+polyAbs_orange, monoAbs_orange, concList_orange = AttenuatedEmit(orangeX, orangeY, color = 'orange')  
+polyAbs_white, monoAbs_white, concList_white = AttenuatedEmit(whiteX, whiteY, color = ':k')  
+polyAbs_yellow, monoAbs_yellow, concList_yellow = AttenuatedEmit(yellowX, yellowY, color = ':y')  
+polyAbs_red, monoAbs_red, concList_red = AttenuatedEmit(redX, redY, color = ':r')  
 
-polyAbs_blue, monoAbs_blue, concList_blue = AttenuatedEmit(blueX,blueY)
-polyAbs_green, monoAbs_green, concList_green = AttenuatedEmit(greenX, greenY, linestyle = ':g') 
 
 # use the PolyReg function to fit the polychromatic absorbance to a second order  
 fit2=PolyReg(concList_blue[concList_blue<=3],polyAbs_blue[concList_blue<=3],2)
 fit1=PolyReg(concList_blue,polyAbs_blue,2)
 fit3=PolyReg(concList_green,polyAbs_green,2)
+fit4=PolyReg(concList_bg,polyAbs_bg,2)
+fit5=PolyReg(concList_orange,polyAbs_orange,2)
+fit6=PolyReg(concList_white,polyAbs_white,2)
+fit7=PolyReg(concList_yellow,polyAbs_yellow,2)
+fit8=PolyReg(concList_red,polyAbs_red,2)
 
 
 # plot the data points (polyAbs), and the fit of the polychromatic,
@@ -163,13 +185,35 @@ plt.figure(2)
 ax1 = plt.subplot()
 ax1.plot(concList_blue, polyAbs_blue, 'ob')
 ax1.plot(concList_blue, fit1['poly'](concList_blue),'b')
+
 ax1.plot(concList_green, polyAbs_green, 'og') 
 ax1.plot(concList_green, fit3['poly'](concList_green),'g')
+
+ax1.plot(concList_bg, polyAbs_bg, 'oc') 
+ax1.plot(concList_bg, fit4['poly'](concList_bg),'c')
+
+ax1.plot(concList_orange, polyAbs_orange,'orange',marker='o') 
+ax1.plot(concList_orange, fit5['poly'](concList_orange),'orange')
+
+ax1.plot(concList_white, polyAbs_white, 'ok') 
+ax1.plot(concList_white, fit6['poly'](concList_white),'k')
+
+ax1.plot(concList_yellow, polyAbs_yellow,'yellow',marker='o') 
+ax1.plot(concList_yellow, fit7['poly'](concList_yellow),'yellow')
+
+ax1.plot(concList_red, polyAbs_red, 'or') 
+ax1.plot(concList_red, fit8['poly'](concList_red),'r')
+
 ax1.plot(concList_blue, monoAbs_blue, 'k')
 
 # annotate the polychromatic light fit
 AnnotateFit(fit2,ax1,color='blue')
 AnnotateFit(fit3,ax1,color ='green',xText=0.1, yText=0.8)
+AnnotateFit(fit4,ax1,color ='c',xText=0.1, yText=0.7)
+AnnotateFit(fit5,ax1,color ='orange',xText=0.1, yText=0.6)
+AnnotateFit(fit6,ax1,color ='k',xText=0.1, yText=0.5)
+AnnotateFit(fit7,ax1,color ='yellow',xText=0.1, yText=0.4)
+AnnotateFit(fit8,ax1,color ='red',xText=0.1, yText=0.3)
 
 # label figure
 ax1.set_ylabel('Absorbance')
