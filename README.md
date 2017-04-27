@@ -1,2 +1,4 @@
 # spectrometer-project-
 In this project you are given a csv file that contains absorptivity data of an iron/ortho-phenanthroline complex in units of L/(mg*cm), and data containing the emission spectra of several candidate LED light sources for use in a spectrometer. The goal is to determine which LED is most useful for detecting the absorbance of the iron/ortho-phenanthroline complex.
+
+After analysis of the light source, the spectrometer was built using an Arduino Genuino UNO. The Arduino Spectrometer was built, and programmed in arduino, the arduino script is provided in this repository. A python script was written as a program that can be run to get Absorbance of a blank, and a sample in a cuvette using either a red or green LED as a light source. The python script, and a picture of the program output from an ipython interpreter is provided.
